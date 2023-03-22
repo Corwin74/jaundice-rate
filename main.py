@@ -2,6 +2,7 @@ import asyncio
 import ssl
 import aiohttp
 import certifi
+from adapters.inosmi_ru import sanitize
 
 
 async def fetch(session, url, ssl_context):
@@ -19,7 +20,7 @@ async def main():
             'http://inosmi.ru/20230322/kitay-261582482.html',
             ssl_context=ssl_context
         )
-        print(html)
+        print(sanitize(html, plaintext=True))
 
 
 asyncio.run(main())
