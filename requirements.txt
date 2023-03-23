@@ -7,3 +7,5 @@ pytest==5.*
 pymorphy2==0.8
 pymorphy2-dicts==2.*
 DAWG-Python==0.7.*
+aiofiles~=23.1.0
+
