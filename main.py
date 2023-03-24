@@ -1,4 +1,5 @@
 import asyncio
+import time
 import ssl
 from enum import Enum
 import aiohttp
@@ -52,6 +53,7 @@ async def process_article(
     words_count = None
     try:
         async with timeout(1):
+            print(time.monotonic())
             html = await fetch(
                 session,
                 url,
