@@ -1,6 +1,7 @@
 import asyncio
 import time
 import ssl
+import logging
 from enum import Enum
 import aiohttp
 import aiofiles
@@ -10,7 +11,11 @@ import certifi
 import pymorphy2
 from adapters.inosmi_ru import sanitize
 from adapters.exceptions import ArticleNotFound
-from text_tools import split_by_words, calculate_jaundice_rate
+from text_tools import split_by_words, calculate_jaundice_rate, log_execution_time
+
+
+logger = logging.getLogger('jandice_rate')
+
 
 TEST_ARTICLES = [
     'https://inosmi.ru/20230322/kitay-261582482.html',
@@ -20,7 +25,7 @@ TEST_ARTICLES = [
     'https://inosmi.ru/20230323/ssha-261613436.html',
     'https://inosmi.ru/not/exist.html',
     'https://pikabu.ru/story/reklama_mvd_poka_ne_udalili_10071263',
-    ]
+]
 
 
 class ProcessingStatus(Enum):
@@ -52,17 +57,18 @@ async def process_article(
     rate = None
     words_count = None
     try:
-        async with timeout(1):
-            print(time.monotonic())
+        async with timeout(10):
             html = await fetch(
                 session,
                 url,
                 ssl_context=ssl_context,
             )
-            words = split_by_words(morph, sanitize(html, plaintext=True))
-            rate = calculate_jaundice_rate(words, charged_words)
-            words_count = len(words)
-            status = ProcessingStatus.OK
+        async with timeout(3):
+            async with log_execution_time():
+                words = await split_by_words(morph, sanitize(html, plaintext=True))
+                rate = calculate_jaundice_rate(words, charged_words)
+                words_count = len(words)
+                status = ProcessingStatus.OK
     except aiohttp.ClientError:
         status = ProcessingStatus.FETCH_ERROR
     except ArticleNotFound:
@@ -73,6 +79,12 @@ async def process_article(
 
 
 async def main():
+    logging.basicConfig(
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        level=logging.INFO,
+        datefmt='%Y-%m-%d %H:%M:%S',
+    )
+
     ssl_context = ssl.create_default_context(cafile=certifi.where())
 
     async with aiohttp.ClientSession() as session:
@@ -101,7 +113,7 @@ async def main():
 
         for result in results:
             title, status, rate, words_count = result
-            print('')
+            print(5*'=')
             print('Заголовок:', title)
             print(f'Статус: {status}')
             print(f'Рейтинг: {rate}\nКоличество слов: {words_count}')
