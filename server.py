@@ -69,10 +69,13 @@ async def process_article(
                 status = ProcessingStatus.OK
     except aiohttp.ClientError:
         status = ProcessingStatus.FETCH_ERROR
+        logger.debug('Fetch error: %s', url)
     except ArticleNotFound:
         status = ProcessingStatus.PARSING_ERROR
+        logger.debug('Parsing error: %s', url)
     except asyncio.TimeoutError:
         status = ProcessingStatus.TIMEOUT
+        logger.debug('Timeout: %s', url)
     results.append((url, status, rate, words_count))
 
 
@@ -187,7 +190,7 @@ async def handle_get(request):
             url, status, rate, words_count = result
             response.append(
                 {
-                    'status': repr(status),
+                    'status': status.value,
                     'url': url,
                     'score': rate,
                     'word_count': words_count,
