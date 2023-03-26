@@ -16,7 +16,7 @@ def _clean_word(word):
     return word
 
 
-async def async_generator(text):
+async def word_generator(text):
     for word in text.split():
         await asyncio.sleep(0)
         yield word
@@ -25,7 +25,7 @@ async def async_generator(text):
 async def split_by_words(morph, text):
     """Учитывает знаки пунктуации, регистр и словоформы, выкидывает предлоги."""
     words = []
-    async for word in async_generator(text):
+    async for word in word_generator(text):
         cleaned_word = _clean_word(word)
         normalized_word = morph.parse(cleaned_word)[0].normal_form
         if len(normalized_word) > 2 or normalized_word == 'не':
