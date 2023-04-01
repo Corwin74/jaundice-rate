@@ -18,7 +18,6 @@ def _clean_word(word):
 
 async def word_generator(text):
     for word in text.split():
-        await asyncio.sleep(0)
         yield word
 
 
